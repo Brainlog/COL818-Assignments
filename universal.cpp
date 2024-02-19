@@ -45,11 +45,9 @@ class Consensus
 {
 public:
     volatile int FIRST;
-    N *winner;
     N* mp[n];
     Consensus()
     {
-        winner = NULL;
         FIRST = -1;
     }
     N* decide(N *node, int myid)
@@ -192,10 +190,6 @@ public:
             }
             // before->decideNext->decide(prefer);
             Node<A,F> *after = before->decideNext->decide(prefer, i);
-            if(before->decideNext->winner == NULL){
-                cout << "Its null\n";
-            }
-            // cout << after->seq << " hello " << "\n";
             before->next = after;
             int a = before->seq + 1;
             after->seq = a;
