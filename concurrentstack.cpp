@@ -13,18 +13,12 @@ public:
     SeqStack() {}
     void apply(Invoke<A, F> *invoke)
     {
-        F funcu = invoke->func;
-        A val = invoke->val;
-        if(val != 10){
-            cout << "val is not 10" << endl;
-        }
-        funcu(s, invoke->val);
+        invoke->func(s, invoke->val);
     }
 };
 
 void push(stack<int> &s, int val)
 {
-    // cout << s.size() << "size" << endl;
     s.push(val);
 }
 
@@ -33,31 +27,86 @@ void pop(stack<int> &s, int val)
     s.pop();
 }
 
+template <typename O, typename A, typename F>
+class ConcurrentStack_LockFree
+{
+public:
+    LFuniversal<O, A, F> luniversal;
+    void apply(Invoke<A, F> *invoke, O *seqstack, int i)
+    {
+        luniversal.apply(invoke, seqstack, i);
+    }
+};
+
+
+template <typename O, typename A, typename F>
+class ConcurrentStack_WaitFree
+{
+public:
+    WFuniversal<O, A, F> wuniversal;
+    void apply(Invoke<A, F> *invoke, O *seqstack, int i)
+    {
+        wuniversal.apply(invoke, seqstack, i);
+    }
+};
+
+
+// Testing the concurrent stack
 int main()
 {
-    stack<int> s;
     int a = 10;
-    int b = 5;
-    pthread_t threads[n];
-    WFuniversal<SeqStack<int, function<void(stack<int> &, int)>>, int, function<void(stack<int> &, int)>> universal;
-     
-#pragma omp parallel num_threads(100) // Don't directly use parallel for, otherwise if one thread exits, all its data will be lost
-{
-    #pragma omp for schedule(static)
-    for (int i = 0; i < 100; i++)
+    ConcurrentStack_LockFree<SeqStack<int, function<void(stack<int> &, int)>>, int, function<void(stack<int> &, int)>> lf_stack;
+    ConcurrentStack_WaitFree<SeqStack<int, function<void(stack<int> &, int)>>, int, function<void(stack<int> &, int)>> wf_stack;
+
+    cout << "Lock Free Universal Class Used for Concurrent Stack" << endl;
+
+    #pragma omp parallel num_threads(n) // Don't directly use parallel for, otherwise if one thread exits, all its data will be lost
     {
-        class Invoke<int, function<void(stack<int> &, int)>> invoke1(a, push);
-        class Invoke<int, function<void(stack<int> &, int)>> *invoke1Ptr = &invoke1;
-        class SeqStack<int, function<void(stack<int> &, int)>> *seqstack = new SeqStack<int, function<void(stack<int> &, int)>>();
-        universal.apply(invoke1Ptr, seqstack, i);
-        string s = "thread" + to_string(i) + " : " + to_string(seqstack->s.size()) + "\n";
-        #pragma omp critical
+        #pragma omp for schedule(static)
+        for (int i = 0; i < n; i++)
         {
-        cout << s;
-        cout << flush;
+            class Invoke<int, function<void(stack<int> &, int)>> invoke1(i, push);
+            class Invoke<int, function<void(stack<int> &, int)>> invoke2(i, pop);
+            class Invoke<int, function<void(stack<int> &, int)>> *invoke1Ptr = &invoke1;
+            class Invoke<int, function<void(stack<int> &, int)>> *invoke2Ptr = &invoke2;
+            class SeqStack<int, function<void(stack<int> &, int)>> *seqstack = new SeqStack<int, function<void(stack<int> &, int)>>();
+            lf_stack.apply(invoke1Ptr, seqstack, i);
+            lf_stack.apply(invoke2Ptr, seqstack, i);
+            string s = "thread" + to_string(i) + " : " + to_string(seqstack->s.size()) + "\n";
+            cout << s;
+            // debug
+            // #pragma omp critical
+            // {
+            //     cout << s;
+            //     cout << flush;
+            // }
         }
     }
-}
-     
+
+    cout << "Wait Free Universal Class Used for Concurrent Stack" << endl;
+
+    #pragma omp parallel num_threads(n) // Don't directly use parallel for, otherwise if one thread exits, all its data will be lost
+    {
+        #pragma omp for schedule(static)
+        for (int i = 0; i < n; i++)
+        {
+            class Invoke<int, function<void(stack<int> &, int)>> invoke1(i, push);
+            class Invoke<int, function<void(stack<int> &, int)>> invoke2(i, pop);
+            class Invoke<int, function<void(stack<int> &, int)>> *invoke1Ptr = &invoke1;
+            class Invoke<int, function<void(stack<int> &, int)>> *invoke2Ptr = &invoke2;
+            class SeqStack<int, function<void(stack<int> &, int)>> *seqstack = new SeqStack<int, function<void(stack<int> &, int)>>();
+            wf_stack.apply(invoke1Ptr, seqstack, i);
+            wf_stack.apply(invoke2Ptr, seqstack, i);
+            string s = "thread" + to_string(i) + " : " + to_string(seqstack->s.size()) + "\n";
+            cout << s;
+            // debug
+            // #pragma omp critical
+            // {
+            //     cout << s;
+            //     cout << flush;
+            // }
+        }
+    }
+
     return 0;
 }

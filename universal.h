@@ -1,4 +1,4 @@
-const int n = 100; // number of threads
+#define n 100
 
 template <typename A, typename F>
 class Invoke

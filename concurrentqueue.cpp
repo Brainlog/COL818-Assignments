@@ -27,23 +27,81 @@ void pop(queue<int> &q, int val)
     q.pop();
 }
 
+template <typename O, typename A, typename F>
+class ConcurrentQueue_LockFree
+{
+public:
+    LFuniversal<O, A, F> luniversal;
+    void apply(Invoke<A, F> *invoke, O *seqqueue, int i)
+    {
+        luniversal.apply(invoke, seqqueue, i);
+    }
+};
+
+template <typename O, typename A, typename F>
+class ConcurrentQueue_WaitFree
+{
+public:
+    WFuniversal<O, A, F> wuniversal;
+    void apply(Invoke<A, F> *invoke, O *seqqueue, int i)
+    {
+        wuniversal.apply(invoke, seqqueue, i);
+    }
+};
+
 int main()
 {
-    stack<int> s;
     int a = 10;
-    int b = 5;
-    pthread_t threads[n];
-    LFuniversal<SeqQueue<int, function<void(queue<int> &, int)>>, int, function<void(queue<int> &, int)>> lfuniversal;
-     
-#pragma omp parallel for
-    for (int i = 0; i < 10; i++)
+    ConcurrentQueue_LockFree<SeqQueue<int, function<void(queue<int> &, int)>>, int, function<void(queue<int> &, int)>> lf_queue;
+    ConcurrentQueue_WaitFree<SeqQueue<int, function<void(queue<int> &, int)>>, int, function<void(queue<int> &, int)>> wf_queue;
+
+cout << "Lock Free Universal Class Used for Concurrent Queue" << endl; 
+#pragma omp parallel num_threads(n)  // Barrier
+{
+    #pragma omp for schedule(static)
+    for (int i = 0; i < n; i++)
+    {
+        class Invoke<int, function<void(queue<int> &, int)>> invoke1(i, push);
+        class Invoke<int, function<void(queue<int> &, int)>> invoke2(i, pop);
+        class Invoke<int, function<void(queue<int> &, int)>> *invoke1Ptr = &invoke1;
+        class Invoke<int, function<void(queue<int> &, int)>> *invoke2Ptr = &invoke2;
+        class SeqQueue<int, function<void(queue<int> &, int)>> *seqqueue = new SeqQueue<int, function<void(queue<int> &, int)>>();
+        lf_queue.apply(invoke1Ptr, seqqueue, i);
+        lf_queue.apply(invoke2Ptr, seqqueue, i);
+        string s = "thread" + to_string(i) + " : " + to_string(seqqueue->q.size()) + "\n";
+        cout << s;
+        // Debug
+        // #pragma omp critical
+        // {
+        //     cout << s;
+        //     cout << flush;
+        // }
+    }
+}
+
+cout << "Wait Free Universal Class Used for Concurrent Queue" << endl;
+#pragma omp parallel num_threads(n)  // Barrier
+{
+    #pragma omp for schedule(static)
+    for (int i = 0; i < n; i++)
     {
         class Invoke<int, function<void(queue<int> &, int)>> invoke1(a, push);
+        class Invoke<int, function<void(queue<int> &, int)>> invoke2(a, pop);
         class Invoke<int, function<void(queue<int> &, int)>> *invoke1Ptr = &invoke1;
-        class SeqQueue<int, function<void(queue<int> &, int)>> *seqstack = new SeqQueue<int, function<void(queue<int> &, int)>>();
-        lfuniversal.apply(invoke1Ptr, seqstack, i);
-        cout << seqstack->q.size() << "size" << endl;
+        class Invoke<int, function<void(queue<int> &, int)>> *invoke2Ptr = &invoke2;
+        class SeqQueue<int, function<void(queue<int> &, int)>> *seqqueue = new SeqQueue<int, function<void(queue<int> &, int)>>();
+        wf_queue.apply(invoke1Ptr, seqqueue, i);
+        wf_queue.apply(invoke2Ptr, seqqueue, i);
+        string s = "thread" + to_string(i) + " : " + to_string(seqqueue->q.size()) + "\n";
+        cout << s;
+        // Debug
+        // #pragma omp critical
+        // {
+        //     cout << s;
+        //     cout << flush;
+        // }
     }
-     
+}
+
     return 0;
 }
