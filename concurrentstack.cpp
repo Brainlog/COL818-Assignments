@@ -2,6 +2,7 @@
 #include <pthread.h>
 #include <omp.h>
 #include "universal.cpp"
+#include <fstream> 
 
 using namespace std;
 
@@ -54,6 +55,12 @@ public:
 // Testing the concurrent stack
 int main()
 {
+    map<int, ofstream> mplockfree, mpwaitfree;
+    for (int i = 0; i < n; i++)
+    {
+        mplockfree[i].open("./Logs/Stacks/lockfree" + to_string(i) + ".txt");
+        mpwaitfree[i].open("./Logs/Stacks/waitfree" + to_string(i) + ".txt");
+    }
     int a = 10;
     ConcurrentStack_LockFree<SeqStack<int, function<void(stack<int> &, int)>>, int, function<void(stack<int> &, int)>> lf_stack;
     ConcurrentStack_WaitFree<SeqStack<int, function<void(stack<int> &, int)>>, int, function<void(stack<int> &, int)>> wf_stack;
@@ -71,9 +78,18 @@ int main()
             class Invoke<int, function<void(stack<int> &, int)>> *invoke2Ptr = &invoke2;
             class SeqStack<int, function<void(stack<int> &, int)>> *seqstack = new SeqStack<int, function<void(stack<int> &, int)>>();
             lf_stack.apply(invoke1Ptr, seqstack, i);
-            lf_stack.apply(invoke2Ptr, seqstack, i);
+            #ifdef Code
+                lf_stack.apply(invoke2Ptr, seqstack, i);
+            #endif
             string s = "thread" + to_string(i) + " : " + to_string(seqstack->s.size()) + "\n";
-            cout << s;
+            string output = "";
+            while(seqstack->s.size() > 0)
+            {
+                output += to_string(seqstack->s.top()) + " ";
+                seqstack->s.pop();
+            }
+            output += "\n";
+            mplockfree[i] << output;
             // debug
             // #pragma omp critical
             // {
@@ -96,9 +112,18 @@ int main()
             class Invoke<int, function<void(stack<int> &, int)>> *invoke2Ptr = &invoke2;
             class SeqStack<int, function<void(stack<int> &, int)>> *seqstack = new SeqStack<int, function<void(stack<int> &, int)>>();
             wf_stack.apply(invoke1Ptr, seqstack, i);
-            wf_stack.apply(invoke2Ptr, seqstack, i);
+            #ifdef Code
+                wf_stack.apply(invoke2Ptr, seqstack, i);
+            #endif
             string s = "thread" + to_string(i) + " : " + to_string(seqstack->s.size()) + "\n";
-            cout << s;
+            string output = "";
+            while(seqstack->s.size() > 0)
+            {
+                output += to_string(seqstack->s.top()) + " ";
+                seqstack->s.pop();
+            }
+            output += "\n";
+            mpwaitfree[i] << output;
             // debug
             // #pragma omp critical
             // {

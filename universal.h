@@ -1,4 +1,5 @@
 #define n 100
+// #define Code 1 // Uncomment to see actions of pop in stack
 
 template <typename A, typename F>
 class Invoke
