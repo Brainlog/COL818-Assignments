@@ -46,20 +46,25 @@ class Consensus
 public:
     volatile int FIRST;
     N *winner;
+    N* mp[n];
     Consensus()
     {
+        winner = NULL;
         FIRST = -1;
     }
-    void decide(N *node)
+    N* decide(N *node, int myid)
     {
-        pthread_t tid = pthread_self();
-        int myid = static_cast<int>(tid);
+        // pthread_t tid = pthread_self();
+        // int myid = static_cast<int>(tid);
+        mp[myid] = node;
         bool success = compare_and_set(&this->FIRST, -1, myid);
-        if (success)
+        if (success) // Error : If winner switched, winner will be NULL, Now corrected
         {
-            winner = node;
+            return mp[myid];
         }
-        return;
+        else{
+            return mp[this->FIRST];
+        }
     }
 };
 
@@ -120,10 +125,12 @@ public:
         {
             Node<A, F> *before = tail->max(head);
             Consensus<Node<A, F>> *decideNext = before->decideNext;
-            before->decideNext->decide(prefer);
-            Node<A, F> *after = before->decideNext->winner;
+            // before->decideNext->decide(prefer);
+            Node<A, F> *after = before->decideNext->decide(prefer, i);
             before->next = after;
-            cout << before->seq << "\n";
+            if(after == NULL){
+                cout << "Its null\n";
+            }
             after->seq = before->seq + 1;
             head[i] = after;
         }
@@ -183,10 +190,15 @@ public:
             else{
                 prefer = announce[i];
             }
-            before->decideNext->decide(prefer);
-            Node<A, F> *after = before->decideNext->winner;
+            // before->decideNext->decide(prefer);
+            Node<A,F> *after = before->decideNext->decide(prefer, i);
+            if(before->decideNext->winner == NULL){
+                cout << "Its null\n";
+            }
+            // cout << after->seq << " hello " << "\n";
             before->next = after;
-            after->seq = before->seq + 1;
+            int a = before->seq + 1;
+            after->seq = a;
             head[i] = after;
         }
         Node<A, F> *current = tail->next;

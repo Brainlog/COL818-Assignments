@@ -1,16 +1,16 @@
-#COL818 Principles of Multiprocessing Systems
-##Assignment 1 (Implementation of Universal class in Lock Free and Wait Free mode)
+# COL818 Principles of Multiprocessing Systems
+## Assignment 1 (Implementation of Universal class in Lock Free and Wait Free mode)
 
-###Universal.cpp  
+### Universal.cpp  
 Contains a universal class in lock free and wait free mode. Import the class in any data structure class to use it
 
-###ConcurrentStack.cpp
+### ConcurrentStack.cpp
 Contrain a Concurrent Stack implemented on Universal class.
 
-###ConcurrentQueue.cpp
+### ConcurrentQueue.cpp
 In similar fashion, a concurrent queue implement using Universal class.
 
-###Run the Code
+### Run the Code
 Run the commands in A1 Folder
 ```
 concurrentqueue:

@@ -11,7 +11,6 @@ public:
 };
 
 
-
 bool compare_and_set(volatile int *r, int expected, int new_value);
 
 
