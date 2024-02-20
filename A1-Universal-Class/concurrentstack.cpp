@@ -33,7 +33,11 @@ class ConcurrentStack_LockFree
 {
 public:
     LFuniversal<O, A, F> luniversal;
-    void apply(Invoke<A, F> *invoke, O *seqstack, int i)
+    void push(Invoke<A, F> *invoke, O *seqstack, int i)
+    {
+        luniversal.apply(invoke, seqstack, i);
+    }
+    void pop(Invoke<A, F> *invoke, O *seqstack, int i)
     {
         luniversal.apply(invoke, seqstack, i);
     }
@@ -45,7 +49,11 @@ class ConcurrentStack_WaitFree
 {
 public:
     WFuniversal<O, A, F> wuniversal;
-    void apply(Invoke<A, F> *invoke, O *seqstack, int i)
+    void push(Invoke<A, F> *invoke, O *seqstack, int i)
+    {
+        wuniversal.apply(invoke, seqstack, i);
+    }
+    void pop(Invoke<A, F> *invoke, O *seqstack, int i)
     {
         wuniversal.apply(invoke, seqstack, i);
     }
@@ -55,12 +63,6 @@ public:
 // Testing the concurrent stack
 int main()
 {
-    map<int, ofstream> mplockfree, mpwaitfree;
-    for (int i = 0; i < n; i++)
-    {
-        mplockfree[i].open("./Logs/Stacks/lockfree" + to_string(i) + ".txt");
-        mpwaitfree[i].open("./Logs/Stacks/waitfree" + to_string(i) + ".txt");
-    }
     int a = 10;
     ConcurrentStack_LockFree<SeqStack<int, function<void(stack<int> &, int)>>, int, function<void(stack<int> &, int)>> lf_stack;
     ConcurrentStack_WaitFree<SeqStack<int, function<void(stack<int> &, int)>>, int, function<void(stack<int> &, int)>> wf_stack;
@@ -77,25 +79,10 @@ int main()
             class Invoke<int, function<void(stack<int> &, int)>> *invoke1Ptr = &invoke1;
             class Invoke<int, function<void(stack<int> &, int)>> *invoke2Ptr = &invoke2;
             class SeqStack<int, function<void(stack<int> &, int)>> *seqstack = new SeqStack<int, function<void(stack<int> &, int)>>();
-            lf_stack.apply(invoke1Ptr, seqstack, i);
-            #ifdef Code
-                lf_stack.apply(invoke2Ptr, seqstack, i);
-            #endif
+            lf_stack.push(invoke1Ptr, seqstack, i);
+            lf_stack.pop(invoke2Ptr, seqstack, i);
             string s = "thread" + to_string(i) + " : " + to_string(seqstack->s.size()) + "\n";
-            string output = "";
-            while(seqstack->s.size() > 0)
-            {
-                output += to_string(seqstack->s.top()) + " ";
-                seqstack->s.pop();
-            }
-            output += "\n";
-            mplockfree[i] << output;
-            // debug
-            // #pragma omp critical
-            // {
-            //     cout << s;
-            //     cout << flush;
-            // }
+            cout << s;
         }
     }
 
@@ -111,25 +98,10 @@ int main()
             class Invoke<int, function<void(stack<int> &, int)>> *invoke1Ptr = &invoke1;
             class Invoke<int, function<void(stack<int> &, int)>> *invoke2Ptr = &invoke2;
             class SeqStack<int, function<void(stack<int> &, int)>> *seqstack = new SeqStack<int, function<void(stack<int> &, int)>>();
-            wf_stack.apply(invoke1Ptr, seqstack, i);
-            #ifdef Code
-                wf_stack.apply(invoke2Ptr, seqstack, i);
-            #endif
+            wf_stack.push(invoke1Ptr, seqstack, i);
+            wf_stack.pop(invoke2Ptr, seqstack, i);
             string s = "thread" + to_string(i) + " : " + to_string(seqstack->s.size()) + "\n";
-            string output = "";
-            while(seqstack->s.size() > 0)
-            {
-                output += to_string(seqstack->s.top()) + " ";
-                seqstack->s.pop();
-            }
-            output += "\n";
-            mpwaitfree[i] << output;
-            // debug
-            // #pragma omp critical
-            // {
-            //     cout << s;
-            //     cout << flush;
-            // }
+            cout << s;
         }
     }
 

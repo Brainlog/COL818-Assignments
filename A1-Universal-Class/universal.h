@@ -1,6 +1,5 @@
 #define n 100
-// #define Code 1 // Uncomment to see actions of pop in stack
-
+// #define OnPop 1
 template <typename A, typename F>
 class Invoke
 {
@@ -47,7 +46,7 @@ public:
     Node<A, F> *head[n];
     Node<A, F> *tail;
     LFuniversal();
-    void apply(Invoke<A, F> *invoke, O *seqstack, int i);
+    void apply(Invoke<A, F> *invoke, O *object, int i);
 };
 
 template <typename O, typename A, typename F>
@@ -57,7 +56,7 @@ public:
     Node<A, F> *head[n];
     Node<A, F> *tail;
     WFuniversal();
-    void apply(Invoke<A, F> *invoke, O *seqstack, int i);
+    void apply(Invoke<A, F> *invoke, O *object, int i);
 };
 
 

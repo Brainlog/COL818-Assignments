@@ -32,7 +32,11 @@ class ConcurrentQueue_LockFree
 {
 public:
     LFuniversal<O, A, F> luniversal;
-    void apply(Invoke<A, F> *invoke, O *seqqueue, int i)
+    void push(Invoke<A, F> *invoke, O *seqqueue, int i)
+    {
+        luniversal.apply(invoke, seqqueue, i);
+    }
+    void pop(Invoke<A, F> *invoke, O *seqqueue, int i)
     {
         luniversal.apply(invoke, seqqueue, i);
     }
@@ -43,7 +47,11 @@ class ConcurrentQueue_WaitFree
 {
 public:
     WFuniversal<O, A, F> wuniversal;
-    void apply(Invoke<A, F> *invoke, O *seqqueue, int i)
+    void push(Invoke<A, F> *invoke, O *seqqueue, int i)
+    {
+        wuniversal.apply(invoke, seqqueue, i);
+    }
+    void pop(Invoke<A, F> *invoke, O *seqqueue, int i)
     {
         wuniversal.apply(invoke, seqqueue, i);
     }
@@ -66,16 +74,10 @@ cout << "Lock Free Universal Class Used for Concurrent Queue" << endl;
         class Invoke<int, function<void(queue<int> &, int)>> *invoke1Ptr = &invoke1;
         class Invoke<int, function<void(queue<int> &, int)>> *invoke2Ptr = &invoke2;
         class SeqQueue<int, function<void(queue<int> &, int)>> *seqqueue = new SeqQueue<int, function<void(queue<int> &, int)>>();
-        lf_queue.apply(invoke1Ptr, seqqueue, i);
-        lf_queue.apply(invoke2Ptr, seqqueue, i);
+        lf_queue.push(invoke1Ptr, seqqueue, i);
+        lf_queue.pop(invoke2Ptr, seqqueue, i);
         string s = "thread" + to_string(i) + " : " + to_string(seqqueue->q.size()) + "\n";
         cout << s;
-        // Debug
-        // #pragma omp critical
-        // {
-        //     cout << s;
-        //     cout << flush;
-        // }
     }
 }
 
@@ -90,16 +92,10 @@ cout << "Wait Free Universal Class Used for Concurrent Queue" << endl;
         class Invoke<int, function<void(queue<int> &, int)>> *invoke1Ptr = &invoke1;
         class Invoke<int, function<void(queue<int> &, int)>> *invoke2Ptr = &invoke2;
         class SeqQueue<int, function<void(queue<int> &, int)>> *seqqueue = new SeqQueue<int, function<void(queue<int> &, int)>>();
-        wf_queue.apply(invoke1Ptr, seqqueue, i);
-        wf_queue.apply(invoke2Ptr, seqqueue, i);
+        wf_queue.push(invoke1Ptr, seqqueue, i);
+        wf_queue.pop(invoke2Ptr, seqqueue, i);
         string s = "thread" + to_string(i) + " : " + to_string(seqqueue->q.size()) + "\n";
         cout << s;
-        // Debug
-        // #pragma omp critical
-        // {
-        //     cout << s;
-        //     cout << flush;
-        // }
     }
 }
 

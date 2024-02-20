@@ -11,4 +11,4 @@ debug_concurrentstack:
 	g++ -g -O0 -fopenmp concurrentstack.cpp universal.h
 
 clean:
-	rm ./Logs/Stacks/* ./a.out
+	rm ./Logs/Object/* ./a.out

@@ -2,6 +2,9 @@
 #include <pthread.h>
 #include <fstream>
 #include <omp.h>
+// #define Log 1  // To Log comment Onpop Line
+
+
 #define n 100
 
 using namespace std;
@@ -97,6 +100,7 @@ class LFuniversal
 public:
     Node<A, F> *head[n];
     Node<A, F> *tail;
+    map<int, ofstream> mplockfree, mpwaitfree;
     LFuniversal()
     {
         tail = new Node<A, F>();
@@ -105,6 +109,13 @@ public:
         {
             head[i] = tail;
         }
+        #ifdef Log
+        for (int i = 0; i < n; i++)
+        {
+            mplockfree[i].open("./Logs/Object/lockfree" + to_string(i) + ".txt");
+            mpwaitfree[i].open("./Logs/Object/waitfree" + to_string(i) + ".txt");
+        }
+        #endif
     }
     void apply(Invoke<A, F> *invoke, O *object, int i)
     {
@@ -118,11 +129,20 @@ public:
             head[i] = after;
         }
         Node<A, F> *current = tail->next;
+        #ifdef Log
+        string output = "";
+        #endif
         while (current != prefer)
         {   
+            #ifdef Log
+            output += to_string(current->invoke->val) + " ";
+            #endif
             object->apply(current->invoke);
             current = current->next;
         }
+        #ifdef Log
+        mplockfree[i] << output; 
+        #endif
         object->apply(current->invoke);
         return;
     }
