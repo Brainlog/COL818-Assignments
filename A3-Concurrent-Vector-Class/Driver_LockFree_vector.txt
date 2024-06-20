@@ -1,0 +1,6 @@
+4 75
+Num Threads 4 Time Taken 79
+Num Threads 4 Time Taken 69
+Num Threads 4 Time Taken 67
+Num Threads 4 Time Taken 55
+Num Threads 4 Time Taken 62

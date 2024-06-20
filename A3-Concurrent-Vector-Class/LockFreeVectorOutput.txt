@@ -1,0 +1,2 @@
+Num threads: 4
+Time taken: 193ms

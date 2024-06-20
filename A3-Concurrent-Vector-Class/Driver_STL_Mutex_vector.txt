@@ -1,0 +1,2 @@
+Num Threads32 Time taken :718
+Num Threads32 Time taken :672
